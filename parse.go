@@ -2,16 +2,19 @@ package main
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"reflect"
-	"strconv"
 	"strings"
 )
 
-func Parse(title string, payload []byte, nullables bool) ([]byte, error) {
+func Parse(title string, payload io.Reader, nullables bool) ([]byte, error) {
 	var obj map[string]interface{}
 
-	if err := json.Unmarshal(payload, &obj); err != nil {
+	decoder := json.NewDecoder(payload)
+	decoder.UseNumber()
+
+	if err := decoder.Decode(&obj); err != nil {
 		return nil, err
 	}
 
@@ -41,27 +44,18 @@ func parseObject(uniques map[string]interface{}, obj map[string]interface{}, nul
 				"name": k,
 				"type": _type("boolean", nullables),
 			})
-		case float64:
-			var typ string
-
-			stringified := strconv.FormatFloat(val, 'E', -1, 64)
-			if strings.Contains(stringified, ".") {
-				if float64(float32(val)) == val {
-					typ = "float"
-				} else {
-					typ = "double"
-				}
-			} else {
-				if float64(int32(val)) == val {
-					typ = "int"
-				} else if float64(int64(val)) == val {
-					typ = "long"
-				}
+		case json.Number:
+			if _, err := val.Int64(); err == nil {
+				schema = append(schema, map[string]interface{}{
+					"name": k,
+					"type": _type("long", nullables),
+				})
+				continue
 			}
 
 			schema = append(schema, map[string]interface{}{
 				"name": k,
-				"type": _type(typ, nullables),
+				"type": _type("double", nullables),
 			})
 		case []interface{}:
 			var typ interface{}

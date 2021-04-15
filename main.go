@@ -33,7 +33,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	f, err := os.ReadFile(filepath.Join(wd, *file))
+	f, err := os.Open(filepath.Join(wd, *file))
 	if err != nil {
 		log.Fatal(err)
 	}
