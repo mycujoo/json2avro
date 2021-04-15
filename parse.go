@@ -44,11 +44,11 @@ func parseObject(uniques map[string]interface{}, obj map[string]interface{}, nul
 		case float64:
 			var typ string
 
-			stringified := strconv.FormatFloat(3.1415, 'E', -1, 64)
+			stringified := strconv.FormatFloat(val, 'E', -1, 64)
 			if strings.Contains(stringified, ".") {
 				if float64(float32(val)) == val {
 					typ = "float"
-				} else if float64(val) == val {
+				} else {
 					typ = "double"
 				}
 			} else {
